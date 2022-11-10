@@ -1,2 +1,2 @@
-# syde599-project
+# syde-599-project
 SYDE 599 Project
