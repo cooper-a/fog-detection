@@ -7,7 +7,7 @@ data_path = f"{base_path}/data"
 
 
 # declare constant columns
-TIMESTAMP_COL = 0
+TIMESTAMP_COL = 1
 IO_COLUMN = 29
 LEFT_SHANK_STARTING_COL = 32
 RIGHT_SHANK_STARTING_COL = 39
@@ -53,7 +53,7 @@ PATIENT_FILE_SUBDIR_MAPPING = {
 def process_patient(patient_id):
     print(f"Processing patient {patient_id}...")
     R_TA_COL, L_TA_COL, ECG_COL, R_GS_COL = PATIENT_EMG_MAP[patient_id]
-    patient_directory = f"{data_path}/{PATIENT_FILE_SUBDIR_MAPPING[1]}"
+    patient_directory = f"{data_path}/{PATIENT_FILE_SUBDIR_MAPPING[patient_id]}"
     patient_data = []
     for _, _, files in os.walk(patient_directory):
         for file in files:
@@ -65,9 +65,6 @@ def process_patient(patient_id):
             print(f" Processing task {task_id}")
 
             for _, data in patient_df.iterrows():
-                # pass
-                # print(len(patient_df[i]))
-                # print(len(row))
                 row_data = [
                     data[TIMESTAMP_COL],
                     patient_id,
@@ -109,8 +106,8 @@ def process_patient(patient_id):
     return patient_data
 
 
+all_patient_data = []
 for i in range(1, 14):
-    all_patient_data = []
     all_patient_data.extend(process_patient(i))
 
 df = pd.DataFrame(
@@ -152,4 +149,4 @@ df = pd.DataFrame(
         "FoG",
     ],
 )
-print(df)
+df.to_csv("cleaned_data.csv")
