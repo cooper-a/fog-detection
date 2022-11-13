@@ -149,4 +149,4 @@ df = pd.DataFrame(
         "FoG",
     ],
 )
-df.to_csv("cleaned_data.csv")
+df.to_csv("cleaned_data.csv", index=False)

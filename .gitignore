@@ -1,6 +1,7 @@
 # data files
 data/
 cleaned_data.csv
+cleaned_data.zip
 
 .vscode/
 
