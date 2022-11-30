@@ -1,5 +1,10 @@
 import pandas as pd
 import os
+import datetime
+
+import itertools
+
+df = pd.read_csv("cleaned_data.csv")
 
 base_path = current_dir = os.path.dirname(__file__)
 
@@ -56,6 +61,7 @@ def process_patient(patient_id):
     patient_directory = f"{data_path}/{PATIENT_FILE_SUBDIR_MAPPING[patient_id]}"
     patient_data = []
     for _, _, files in os.walk(patient_directory):
+        print(files)
         for file in files:
             task_id = int(file.split(".txt")[0][-1])
             patient_df = pd.read_csv(
@@ -64,16 +70,23 @@ def process_patient(patient_id):
             )
             print(f" Processing task {task_id}")
 
+            _, first_row_data = list(patient_df.iterrows())[0]
+
+            start_time = datetime.datetime.strptime(
+                first_row_data[TIMESTAMP_COL], "%H:%M:%S"
+            )
+
             for _, data in patient_df.iterrows():
+                time = data[TIMESTAMP_COL]
+                try:
+                    time = datetime.datetime.strptime(time, "%H:%M:%S.%f") - start_time
+                    time = time.total_seconds()
+                except:
+                    time = (datetime.datetime.strptime(time, "%H:%M:%S")) - start_time
+                    time = time.total_seconds()
                 row_data = [
-                    data[TIMESTAMP_COL],
-                    patient_id,
                     task_id,
-                    data[IO_COLUMN],
-                    data[ECG_COL],
-                    data[R_TA_COL],
-                    data[L_TA_COL],
-                    data[R_GS_COL],
+                    time,
                     data[LEFT_SHANK_STARTING_COL],
                     data[LEFT_SHANK_STARTING_COL + 1],
                     data[LEFT_SHANK_STARTING_COL + 2],
@@ -98,7 +111,6 @@ def process_patient(patient_id):
                     data[ARM_STARTING_COL + 3],
                     data[ARM_STARTING_COL + 4],
                     data[ARM_STARTING_COL + 5],
-                    data[SC_COL],
                     data[FOG_LABEL_COL],
                 ]
                 patient_data.append(row_data)
@@ -107,46 +119,39 @@ def process_patient(patient_id):
 
 
 all_patient_data = []
-for i in range(1, 14):
+for i in range(3, 4):
     all_patient_data.extend(process_patient(i))
 
 df = pd.DataFrame(
     all_patient_data,
     columns=[
-        "Timestamp",
-        "Patient_ID",
-        "Task_ID",
-        "Electrooculogram",
-        "ECG",
-        "EMG_R-TA",
-        "EMG_L-TA",
-        "EMG_R-GS",
-        "LS_acc_x",
-        "LS_acc_y",
-        "LS_acc_z",
-        "LS_gyro_x",
-        "LS_gyro_y",
-        "LS_gyro_z",
-        "RS_acc_x",
-        "RS_acc_y",
-        "RS_acc_z",
-        "RS_gyro_x",
-        "RS_gyro_y",
-        "RS_gyro_z",
-        "Waist_acc_x",
-        "Waist_acc_y",
-        "Waist_acc_z",
-        "Waist_gyro_x",
-        "Waist_gyro_y",
-        "Waist_gyro_z",
-        "Arm_acc_x",
-        "Arm_acc_y",
-        "Arm_acc_z",
-        "Arm_gyro_x",
-        "Arm_gyro_y",
-        "Arm_gyro_z",
-        "SC",
-        "FoG",
+        "subject_ID",
+        "time",
+        "imu_shank_l_ax",
+        "imu_shank_l_ay",
+        "imu_shank_l_az",
+        "imu_shank_l_gx",
+        "imu_shank_l_gy",
+        "imu_shank_l_gz",
+        "imu_shank_r_ax",
+        "imu_shank_r_ay",
+        "imu_shank_r_az",
+        "imu_shank_r_gx",
+        "imu_shank_r_gy",
+        "imu_shank_r_gz",
+        "imu_waist_ax",
+        "imu_waist_ay",
+        "imu_waist_az",
+        "imu_waist_gx",
+        "imu_waist_gy",
+        "imu_waist_gz",
+        "imu_arm_ax",
+        "imu_arm_ay",
+        "imu_arm_az",
+        "imu_arm_gx",
+        "imu_arm_gy",
+        "imu_arm_gz",
+        "freeze_label",
     ],
 )
-df.to_csv("cleaned_data.csv", index=False)
+df.to_csv("cleaned_data_IMU_only.csv", index=False)
